@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MovingCube</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        #grid-container {
+            display: grid;
+            grid-template-columns: repeat(100, 10px);
+            grid-template-rows: repeat(100, 10px);
+            gap: 1px;
+        }
+
+        .cell {
+            width: 10px;
+            height: 10px;
+            background-color: white;
+            border: 1px solid #ccc;
+        }
+
+        .cell.black {
+            background-color: black;
+        }
+
+        .ant {
+            position: relative;
+        }
+
+        .ant::after {
+            content: '↑';
+            position: absolute;
+            font-size: 10px;
+            color: red;
+        }
+
+        button {
+            margin: 10px;
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="grid-container"></div>
+    <button onclick="startSimulation()">Start Simulation</button>
+    <button onclick="stopSimulation()">Stop Simulation</button>
+    <button onclick="resetGrid()">Reset Grid</button>
+    <script>
+        const gridContainer = document.getElementById('grid-container');
+        const rows = 100;
+        const cols = 100;
+        let grid = [];
+        let interval;
+        let ant = { row: Math.floor(rows / 2), col: Math.floor(cols / 2), direction: 0 };
+
+        function createGrid() {
+            gridContainer.innerHTML = '';
+            grid = [];
+            for (let i = 0; i < rows; i++) {
+                let row = [];
+                for (let j = 0; j < cols; j++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    cell.addEventListener('click', () => toggleCell(i, j));
+                    gridContainer.appendChild(cell);
+                    row.push(cell);
+                }
+                grid.push(row);
+            }
+            placeAnt();
+        }
+
+        function toggleCell(row, col) {
+            const cell = grid[row][col];
+            cell.classList.toggle('black');
+        }
+
+        function placeAnt() {
+            const cell = grid[ant.row][ant.col];
+            cell.classList.add('ant');
+            updateAntDirection(cell);
+        }
+
+        function updateAntDirection(cell) {
+            const directions = ['↑', '→', '↓', '←'];
+            cell.innerHTML = directions[ant.direction];
+        }
+
+        function moveAnt() {
+            const currentCell = grid[ant.row][ant.col];
+            currentCell.classList.remove('ant');
+            currentCell.innerHTML = '';
+
+            if (currentCell.classList.contains('black')) {
+                ant.direction = (ant.direction + 1) % 4; // Turn right
+                currentCell.classList.remove('black');
+            } else {
+                ant.direction = (ant.direction + 3) % 4; // Turn left
+                currentCell.classList.add('black');
+            }
+
+            switch (ant.direction) {
+                case 0: ant.row = (ant.row - 1 + rows) % rows; break; // Up
+                case 1: ant.col = (ant.col + 1) % cols; break; // Right
+                case 2: ant.row = (ant.row + 1) % rows; break; // Down
+                case 3: ant.col = (ant.col - 1 + cols) % cols; break; // Left
+            }
+
+            placeAnt();
+        }
+
+        function startSimulation() {
+            if (!interval) {
+                interval = setInterval(moveAnt, 100);
+            }
+        }
+
+        function stopSimulation() {
+            clearInterval(interval);
+            interval = null;
+        }
+
+        function resetGrid() {
+            stopSimulation();
+            ant = { row: Math.floor(rows / 2), col: Math.floor(cols / 2), direction: 0 };
+            createGrid();
+        }
+
+        createGrid();
+    </script>
+</body>
+</html>
